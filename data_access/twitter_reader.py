@@ -38,7 +38,10 @@ class TwitterReader:
         # possibly_sensitive, promoted_metrics, public_metrics, referenced_tweets,
         # source, text, and withheld
         tweet_fields = "tweet.fields=author_id,text,created_at"
-        url = f'https://api.twitter.com/2/tweets/search/recent?query={query}&{tweet_fields}'
+        options = "max_results=100"
+        url = ('https://api.twitter.com/2/tweets/search/'
+            f'recent?query={query}&{options}&{tweet_fields}')
+        print(url)
         return url
 
 

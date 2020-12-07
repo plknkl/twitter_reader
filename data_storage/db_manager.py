@@ -56,7 +56,7 @@ def get_tweets():
         cur = conn.cursor()
         cur.execute("SELECT * FROM tweets")
         rows = cur.fetchall()
-        print(rows)
+        return rows
 
 
 
