@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 def connect():
     conn = sqlite3.connect('./db/db.sqlite3')
@@ -58,6 +59,13 @@ def get_tweets():
         rows = cur.fetchall()
         return rows
 
+def remove_URL(sample):
+    """Remove URLs from a sample string"""
+    return re.sub(r"http\S+", "", sample)
+
+def get_text_tweets():
+    rows = get_tweets()
+    return list(map(lambda x: remove_URL(x[2]), rows))
 
 
 
