@@ -51,21 +51,25 @@ def save_tweets(tweets):
         #commit the changes to db			
         conn.commit()
 
-def get_tweets():
+def tweets():
     conn = connect()
     with conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM tweets")
-        rows = cur.fetchall()
-        return rows
+        for tweet in iter(cur.fetchone, None):
+            yield tweet
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
     return re.sub(r"http\S+", "", sample)
 
-def get_text_tweets():
-    rows = get_tweets()
-    return list(map(lambda x: remove_URL(x[2]), rows))
+def texts():
+    conn = connect()
+    with conn:
+        cur = conn.cursor()
+        cur.execute("SELECT tweet_text FROM tweets")
+        for text in iter(cur.fetchone, None):
+            yield remove_URL(text[0])
 
 
 
