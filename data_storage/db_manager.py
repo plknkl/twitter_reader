@@ -1,120 +1,113 @@
 import sqlite3
 import re
 
-def connect():
-    conn = sqlite3.connect('./db/db.sqlite3')
-    return conn
+class DBManager:
 
-def reset_db():
-    conn = connect()
-    c = conn.cursor()
-			
-    #get the count of tables with the name
-    c.execute(''' DROP TABLE tweets''')
-    conn.commit()
-    conn.close
+    def __init__(self):
+        self.conn = self.connect()
 
-def create_table_if_needed():
-    conn = connect()
-    c = conn.cursor()
-			
-    #get the count of tables with the name
-    c.execute(''' SELECT count(name) FROM sqlite_master
-                WHERE type='table' AND name='tweets' ''')
+    def connect(self):
+        conn = sqlite3.connect('./db/db.sqlite3')
+        return conn
 
-    #if the count is 1, then table exists
-    if c.fetchone()[0]==1 :
-        print('Table exists.')
-    else:
-        print('Table needed.')
+    def reset_raw_tweets(self):
+        c = self.conn.cursor()
+        try:        
+            c.execute(''' DROP TABLE tweets''')
+        except Exception as ex:
+            print(ex)
+
         table_sql = """
             CREATE TABLE tweets (
-                id integer,
+                id integer NOT NULL,
                 author_id integer NOT NULL,
                 tweet_text text NOT NULL,
                 created_at text NOT NULL,
                 PRIMARY KEY (id, author_id))
             """
-
         c.execute(table_sql)
-        print('Table created.')
-                
-    #commit the changes to db			
-    conn.commit()
+        self.conn.commit()
 
-    return conn
-
-def tweets_to_tuple_list(tweets):
-    return [(   x['id'],
-                x['author_id'],
-                x['text'],
-                x['created_at']) for x in tweets]
-
-def save_tweets(tweets):
-    # returns connection so it can be reused
-    conn = create_table_if_needed()
-    with conn:
-        tupled_tweets = tweets_to_tuple_list(tweets)
-        c = conn.cursor()
-        c.executemany("INSERT OR IGNORE INTO tweets VALUES(?, ?, ?, ?)", tupled_tweets)
-        #commit the changes to db			
-        conn.commit()
-
-def tweets():
-    conn = connect()
-    with conn:
-        c = conn.cursor()
-        c.execute("SELECT * FROM tweets")
-        for tweet in iter(c.fetchone, None):
-            yield tweet
-
-def remove_URL(sample):
-    """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", "", sample)
-
-def tweet_texts():
-    conn = connect()
-    with conn:
-        c = conn.cursor()
-        c.execute("SELECT tweet_text FROM tweets")
-        for text in iter(c.fetchone, None):
-            yield remove_URL(text[0])
-
-def save_processed_tweets(tagged_sent_gen):
-    conn = connect()
-    with conn:
-        c = conn.cursor()
-
-        try:
-            c.execute(''' DROP TABLE processed_tweets''')
-        except:
-            print('table not found')
-
+    def reset_processed_tweets(self):
+        c = self.conn.cursor()
+        try:                    
+            c.execute('''DROP TABLE processed_tweets''')
+            self.conn.commit()
+        except Exception as ex:
+            print(ex)
         table_sql = '''
             CREATE TABLE processed_tweets (
+                tweet_id text NOT NULL,
                 tag text NOT NULL,
                 token text NOT NULL
                 );
             '''
 
         c.execute(table_sql)
+        self.conn.commit()
+
+    def tweets_to_tuple_list(self, tweets):
+        return [(   x['id'],
+                    x['author_id'],
+                    x['text'],
+                    x['created_at']) for x in tweets]
+
+    def save_tweets(self, tweets):
+        tupled_tweets = self.tweets_to_tuple_list(tweets)
+        c = self.conn.cursor()
+        c.executemany("INSERT OR IGNORE INTO tweets VALUES(?, ?, ?, ?)", tupled_tweets)
+
+        self.conn.commit()
+
+    def tweets(self):
+        c = self.conn.cursor()
+        c.execute("SELECT * FROM tweets")
+        for (tweet,) in c:
+            yield tweet
+
+    def remove_URL(self, sample):
+        """Remove URLs from a sample string"""
+        return re.sub(r"http\S+", "", sample)
+
+    def get_tweet_texts(self):
+        c = self.conn.cursor()
+        c.execute("SELECT id, tweet_text FROM tweets")
+        for (tweet_id, tweet_text) in c:
+            yield (tweet_id, self.remove_URL(tweet_text))
+
+    def save_processed_tweets(self, tagged_sent_gen):
+        c = self.conn.cursor()
 
         for sent in tagged_sent_gen:
             c.executemany('''
                 INSERT OR IGNORE 
-                INTO processed_tweets (token, tag) 
-                VALUES(?, ?)
+                INTO processed_tweets (tweet_id, token, tag) 
+                VALUES(?, ?, ?)
                 '''
                 , sent)
 
+        self.conn.commit()
 
-def get_processed_tweets():
-    conn = connect()
-    with conn:
-        c = conn.cursor()
-        c.execute("SELECT token, tag FROM processed_tweets")
-        for token in iter(c.fetchone, None):
-            yield token
+    def get_processed_tweets(self):
+        c = self.conn.cursor()
+        c.execute('SELECT DISTINCT tweet_id FROM processed_tweets')
+        tweet_list = c.fetchall()
+        for (tweet_id,) in tweet_list:
+            c.execute('''SELECT token, tag FROM processed_tweets
+                WHERE tweet_id=?''', (tweet_id,))
+            tweet_tokens = c.fetchall()
+            yield tweet_tokens
+
+    def get_processed_tokens(self):
+        for processed_tweet in self.get_processed_tweets():
+            yield [token for (token, tag) in processed_tweet]
+
+    def get_tweets_vocabulary(self):
+        c = self.conn.cursor()
+        c.execute('''SELECT DISTINCT token FROM processed_tweets
+                ORDER BY token ASC''')
+        return [token for (token,) in c.fetchall()]
+        
 
 
 
