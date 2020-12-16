@@ -108,27 +108,3 @@ class DBManager:
                 ORDER BY token ASC''')
         return [token for (token,) in c.fetchall()]
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

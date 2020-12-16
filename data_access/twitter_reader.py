@@ -7,6 +7,8 @@ class TwitterReader:
 
     def __init__(self, conf_json_path):
         self.conf_json_path = conf_json_path
+        self.query = None
+        self.page_tracking = 0
 
     def auth(self):
         with open(self.conf_json_path) as f:
@@ -28,7 +30,13 @@ class TwitterReader:
         self.query = quote_plus(q)
 
 
-    def create_url(self):
+    def create_url(self, next_token=None):
+        
+        if self.query == None:
+            print('''missing query, please add a query 
+                with set_query method''')
+            return None
+
         query = self.query
         # Tweet fields are adjustable.
         # Options include:
@@ -39,9 +47,13 @@ class TwitterReader:
         # source, text, and withheld
         tweet_fields = "tweet.fields=author_id,text,created_at"
         options = "max_results=100"
-        url = ('https://api.twitter.com/2/tweets/search/'
-            f'recent?query={query}&{options}&{tweet_fields}')
-        print(url)
+        if next_token == None:
+            url = ('https://api.twitter.com/2/tweets/search/'
+                f'recent?query={query}&{options}&{tweet_fields}')
+        else:
+            url = ('https://api.twitter.com/2/tweets/search/'
+                f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
+        # print(url)
         return url
 
 
@@ -52,16 +64,34 @@ class TwitterReader:
 
     def connect_to_endpoint(self, url, headers):
         response = requests.request("GET", url, headers=headers)
-        print(response.status_code)
+        if response.status_code == 200:
+            self.page_tracking += 1
+            print(f'page {self.page_tracking}...ok')
         if response.status_code != 200:
             raise Exception(response.status_code, response.text)
         return response.json()
 
 
-    def read(self):
+    def read(self, pages=1):
         bearer_token = self.auth()
-        url = self.create_url()
-        headers = self.create_headers(bearer_token)
-        json_response = self.connect_to_endpoint(url, headers)
-        return json_response
+        response_list = []
+
+        # given with the first request for getting
+        # next pages
+        next_token = None
+        
+        for i in range(pages):
+            url = self.create_url(next_token)
+            if url:
+                headers = self.create_headers(bearer_token)
+                json_response = self.connect_to_endpoint(url, headers)
+                next_token = json_response['meta']['next_token']
+                response_list += json_response['data']
+                if len(next_token) < 3:
+                    print('no more tweets available')
+                    return response_list
+            else:
+                return None
+        self.page_tracking += 0
+        return response_list
 
