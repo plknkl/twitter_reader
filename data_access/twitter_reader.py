@@ -85,9 +85,17 @@ class TwitterReader:
             if url:
                 headers = self.create_headers(bearer_token)
                 json_response = self.connect_to_endpoint(url, headers)
-                next_token = json_response['meta']['next_token']
+                {'meta': {'result_count': 0}}
+                if json_response['meta']['result_count'] == 0:
+                    print('no more tweets available')
+                    return response_list
+
+                if 'next_token' in json_response['meta'].keys():
+                    next_token = json_response['meta']['next_token']
+                else:
+                    next_token = None
                 response_list += json_response['data']
-                if len(next_token) < 3:
+                if not next_token:
                     print('no more tweets available')
                     return response_list
             else:

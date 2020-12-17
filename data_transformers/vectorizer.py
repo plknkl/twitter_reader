@@ -12,3 +12,4 @@ class OneHotVectorizer(BaseEstimator, TransformerMixin):
     def transform(self, tweets):
         freqs = self.vectorizer.fit_transform(tweets)
         return [freq.toarray()[0] for freq in freqs]
+

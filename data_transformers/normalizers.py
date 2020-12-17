@@ -10,6 +10,11 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
         self.lemmatizer = WordNetLemmatizer()
         self.stopwords = set(stopwords.words(language))
 
+    def is_punct(self, token):
+        return all(
+            unicodedata.category(char).startswith('P') for char in token
+        )
+
     def is_stopword(self, token):
         return token.lower() in self.stopwords
 
@@ -28,7 +33,7 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
         return [
             self.lemmatize(token, tag).lower()
             for (token, tag) in tweet
-            if not self.is_stopword(token)
+            if not self.is_stopword(token) and not self.is_punct(token)
         ]
 
     def fit(self, X, y=None):
