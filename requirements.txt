@@ -1,3 +1,5 @@
+yellowbrick
+matplotlib
 requests
 nltk
 numpy

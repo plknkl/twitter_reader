@@ -69,11 +69,14 @@ class DBManager:
         """Remove URLs from a sample string"""
         return re.sub(r"http\S+", "", sample)
 
-    def get_tweet_texts(self):
+    def get_tweet_texts(self, text_only=False):
         c = self.conn.cursor()
         c.execute("SELECT id, tweet_text FROM tweets")
         for (tweet_id, tweet_text) in c:
-            yield (tweet_id, self.remove_URL(tweet_text))
+            if text_only:
+                yield self.remove_URL(tweet_text)
+            else:
+                yield (tweet_id, self.remove_URL(tweet_text))
 
     def save_processed_tweets(self, tagged_sent_gen):
         c = self.conn.cursor()

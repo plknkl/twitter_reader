@@ -36,7 +36,7 @@ class Wrangler:
         return list(filter(self.explicit_filter, tweet_tokenizer.tokenize(sentence)))
 
     def tokenize(self):
-        # Perform single pass over tweets, tokenize and count
+        # main method for wrangle data
         for tweet in self.tweet_gen:
             for sent in tweet:
                 yield sent

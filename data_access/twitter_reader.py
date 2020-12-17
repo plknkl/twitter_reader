@@ -93,5 +93,6 @@ class TwitterReader:
             else:
                 return None
         self.page_tracking += 0
+        print(f'{len(response_list)} tweets read.')
         return response_list
 
