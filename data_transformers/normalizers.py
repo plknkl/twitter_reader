@@ -38,6 +38,7 @@ class TextNormalizer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         return self
-
+    
+    # requires a list of (token, tag) tuples
     def transform(self, tweet_gen):
         return [' '.join(self.normalize(tweet)) for tweet in tweet_gen]
