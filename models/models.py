@@ -50,32 +50,19 @@ class Cluster:
     def __init__(self, k=2):
         self.k = k
 
-    def cluster(self, processed_tweets):
-        model = Pipeline([
-            ('norm', TextNormalizer()),
-            ('vect', OneHotVectorizer()),
-            ('clusters', KMeansClusters(k=self.k))
-        ])
-        
-        clusters = model.fit_transform(processed_tweets)
-        return clusters
-    
-    def cluster_dict(self, processed_tweets):
-        sentence_list = TextNormalizer().transform(processed_tweets)
+    def clustered_text(self, transformed_text):
+        (transformed_text, tweet_ids) = list(zip(*transformed_text))
         model = Pipeline([
             ('vect', OneHotVectorizer()),
             ('clusters', KMeansClusters(k=self.k))
         ])
        
         result = {}
-        clusters = model.fit_transform(sentence_list)
+        clusters = model.fit_transform(transformed_text)
 
-        clustered_sents = list(zip(sentence_list, clusters))
+        clustered_text = list(zip(transformed_text, clusters))
 
-        for c in set(clusters):
-            result[c] = [x[0] for x in clustered_sents if x[1] == c]
-
-        return result
+        return list(zip(clustered_text, tweet_ids))
 
 
 

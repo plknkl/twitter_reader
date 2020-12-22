@@ -69,6 +69,10 @@ class DBManager:
         """Remove URLs from a sample string"""
         return re.sub(r"http\S+", "", sample)
 
+    def extract_URL(self, sample):
+        """Find all URLs from a sample string"""
+        return re.findall(r"http\S+", sample)
+
     def get_tweet_texts(self, text_only=False):
         c = self.conn.cursor()
         c.execute("SELECT id, tweet_text FROM tweets")
@@ -77,6 +81,24 @@ class DBManager:
                 yield self.remove_URL(tweet_text)
             else:
                 yield (tweet_id, self.remove_URL(tweet_text))
+
+    def get_tweet_urls(self, tweet_ids=None):
+        c = self.conn.cursor()
+
+        if tweet_ids:
+            query = f'''SELECT tweet_text FROM tweets 
+                WHERE id in ({','.join(['?']*len(tweet_ids))})'''
+            c.execute(query, tweet_ids)
+        else:
+            c.execute("SELECT tweet_text FROM tweets")
+
+        url_list = []
+        for (tweet_text,) in c:
+            l = self.extract_URL(tweet_text) 
+            if l:
+                url_list.append((self.remove_URL(tweet_text), l))
+        return url_list
+
 
     def save_processed_tweets(self, tagged_sent_gen):
         c = self.conn.cursor()
@@ -99,7 +121,7 @@ class DBManager:
             c.execute('''SELECT token, tag FROM processed_tweets
                 WHERE tweet_id=?''', (tweet_id,))
             tweet_tokens = c.fetchall()
-            yield tweet_tokens
+            yield (tweet_tokens, tweet_id)
 
     def get_processed_tokens(self):
         for processed_tweet in self.get_processed_tweets():
