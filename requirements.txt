@@ -1,9 +1,1 @@
-yellowbrick
-matplotlib
-requests
-nltk
-numpy
-pandas
-notebook
-scikit-learn
-wordcloud
+psycopg2

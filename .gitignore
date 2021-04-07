@@ -55,3 +55,9 @@ tags
 # data
 db/
 local_configs/
+
+aclIm*
+.ipynb_checkpoints/
+.vscode
+__py*
+tags
