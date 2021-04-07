@@ -14,6 +14,8 @@ class DBConfig:
             raise NotImplemented()
 
 def save_tweets(tweets: [], config):
+"""A function which pushes tweet dicts to a db"""
+
     json_tweets = [(json.dumps(tweet),) for tweet in tweets]
     try:
         with _get_connection(config) as conn:
@@ -41,6 +43,8 @@ def _get_connection(config):
         )    
 
 def read_tweets(config):
+"""A function which pulls all tweet dicts from a db"""
+
     with _get_connection(config) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT data FROM tweet;")
@@ -48,6 +52,7 @@ def read_tweets(config):
             return list(map(lambda x: x[0], rows))
 
 def clear_tweet_table(config):
+"""A function which clears the tweet table"""
     with _get_connection(config) as conn:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM tweet;")

@@ -3,7 +3,7 @@ import os
 import json
 
 
-class Config:
+class APIConfig:
     def __init__(self, conf_json_path='./local_configs/api_keys.json', lang=None):
         self.conf_json_path = conf_json_path
         with open(self.conf_json_path) as f:
@@ -12,7 +12,8 @@ class Config:
         self.tweet_fields = ['author_id','text','created_at']
         self.options = {'max_results': 10}
 
-def query(query: str, config: Config):
+def query(query: str, config: APIConfig):
+"""A simple query which gives back Tweets"""
     headers = {"Authorization": "Bearer {}".format(config.bearer)}
     options = _stringify_options(config.options)
     tweet_fields = 'tweet.fields='+','.join(config.tweet_fields)
