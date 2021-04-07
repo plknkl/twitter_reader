@@ -12,4 +12,4 @@ The notebook is used as the interface to the user, it imports the Twitter Reader
 The library which contains the functions to access the Twitter API, and has persistance capabilities thanks to a sqlite interface.
 
 ## Database
-A simple SQlite database.
+A postres database.

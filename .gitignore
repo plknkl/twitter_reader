@@ -48,19 +48,8 @@ Thumbs.db
 *.mov
 *.wmv
 
-<<<<<<< HEAD
-=======
-/env
-.ipynb_checkpoints/
-tags
-
-# data
-db/
-local_configs/
-
-aclIm*
-.ipynb_checkpoints/
+.ipynb*
 .vscode
-__py*
+aclImdb*
+local_configs
 tags
->>>>>>> c6aab90863be5cceb5de8c5cbbd95860d0d982a3
