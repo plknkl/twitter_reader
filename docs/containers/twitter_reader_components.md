@@ -3,7 +3,7 @@ graph TD
     jupyter[Jupyter Notebook] -->|imports| data_storage[Data Storage]
     jupyter -->|imports| twitter_manager[Twitter Manager]
     data_storage -->|rw| database[Database]
-    twitter_manager[Twitter Reader] -->|queries| twitter_api[Twitter Api]
+    twitter_manager[Twitter Manager] -->|queries| twitter_api[Twitter Api]
 ```
 
 ## Components
@@ -16,9 +16,8 @@ Can query the Twitter API with a term.
 
 ### Data Storage
 Can save and read saved tweets.
-<br>
-<br>
 
+<div style="page-break-after: always;"></div>
 
 
 
@@ -33,11 +32,12 @@ user='postgres'
 password='bobolo'
 ```
 
+
 ### APIConfig
 A model for storing twitter api configuration
 ```python
 conf_json_path = './local_configs/api_keys.json'
-bearer = data['bearer']
+bearer = 'aaaaabbbbbbbcccc'
 tweet_fields = ['author_id','text','created_at']
 options = {'max_results': 10}
 ```
