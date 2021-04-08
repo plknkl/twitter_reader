@@ -12,14 +12,29 @@ class APIConfig:
         self.tweet_fields = ['author_id','text','created_at']
         self.options = {'max_results': 10}
 
-def query(query: str, config: APIConfig):
-"""A simple query which gives back Tweets"""
+def query(query: str, config: APIConfig, pages=1):
+    """A simple query which gives back Tweets"""
+    tweets = []
     headers = {"Authorization": "Bearer {}".format(config.bearer)}
     options = _stringify_options(config.options)
     tweet_fields = 'tweet.fields='+','.join(config.tweet_fields)
-    url = ('https://api.twitter.com/2/tweets/search/'
-            f'recent?query={query}&{options}&{tweet_fields}')
-    return _connect_to_endpoint(url, headers)
+    
+    next_token = None
+    for page in range(pages):
+        if not next_token:
+            url = ('https://api.twitter.com/2/tweets/search/'
+                    f'recent?query={query}&{options}&{tweet_fields}')
+            json_response = _connect_to_endpoint(url, headers)
+        else:
+            url = ('https://api.twitter.com/2/tweets/search/'
+                    f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
+            json_response = _connect_to_endpoint(url, headers)
+        tweets += json_response['data']
+        if 'next_token' in json_response['meta'].keys():
+            next_token = json_response['meta']['next_token']
+        else:
+            break
+    return tweets
 
 def _stringify_options(options:{}) -> str:
     options_str = ''
