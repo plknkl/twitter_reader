@@ -12,46 +12,50 @@ class APIConfig:
         self.tweet_fields = ['author_id','text','created_at']
         self.options = {'max_results': 10}
 
-def query(query: str, config: APIConfig, pages=1):
-    """A simple query which gives back Tweets"""
-    tweets = []
-    headers = {"Authorization": "Bearer {}".format(config.bearer)}
-    options = _stringify_options(config.options)
-    tweet_fields = 'tweet.fields='+','.join(config.tweet_fields)
-    
-    next_token = None
-    for page in range(pages):
-        if not next_token:
-            url = ('https://api.twitter.com/2/tweets/search/'
-                    f'recent?query={query}&{options}&{tweet_fields}')
-            json_response = _connect_to_endpoint(url, headers)
-        else:
-            url = ('https://api.twitter.com/2/tweets/search/'
-                    f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
-            json_response = _connect_to_endpoint(url, headers)
-        tweets += json_response['data']
-        if 'next_token' in json_response['meta'].keys():
-            next_token = json_response['meta']['next_token']
-        else:
-            break
-    return tweets
+class APIManager:
+    def __init__(self, config: APIConfig):
+        self.config = config
 
-def _stringify_options(options:{}) -> str:
-    options_str = ''
-    for k in options.keys():
-        options_str += f'{k}={options[k]}'
-    return options_str
+    def query(self, query: str, pages=1):
+        """A simple query which gives back Tweets"""
+        tweets = []
+        headers = {"Authorization": "Bearer {}".format(self.config.bearer)}
+        options = self._stringify_options(self.config.options)
+        tweet_fields = 'tweet.fields='+','.join(self.config.tweet_fields)
+        
+        next_token = None
+        for page in range(pages):
+            if not next_token:
+                url = ('https://api.twitter.com/2/tweets/search/'
+                        f'recent?query={query}&{options}&{tweet_fields}')
+                json_response = self._connect_to_endpoint(url, headers)
+            else:
+                url = ('https://api.twitter.com/2/tweets/search/'
+                        f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
+                json_response = self._connect_to_endpoint(url, headers)
+            tweets += json_response['data']
+            if 'next_token' in json_response['meta'].keys():
+                next_token = json_response['meta']['next_token']
+            else:
+                break
+        return tweets
 
-def _connect_to_endpoint(url, headers):
-    response = requests.request("GET", url, headers=headers)
-    json_response = None
-    if response.status_code == 200:
-        json_response = response.json()
-        response_data_len = len(json_response['data'])
-        print(f'got {response_data_len} tweets.')
-    if response.status_code != 200:
-        raise Exception(response.status_code, response.text)
-    return json_response
+    def _stringify_options(self, options:{}) -> str:
+        options_str = ''
+        for k in options.keys():
+            options_str += f'{k}={options[k]}'
+        return options_str
+
+    def _connect_to_endpoint(self, url, headers):
+        response = requests.request("GET", url, headers=headers)
+        json_response = None
+        if response.status_code == 200:
+            json_response = response.json()
+            response_data_len = len(json_response['data'])
+            print(f'got {response_data_len} tweets.')
+        if response.status_code != 200:
+            raise Exception(response.status_code, response.text)
+        return json_response
 
 
 # class TwitterReader:
