@@ -3,6 +3,10 @@ import os
 import json
 import urllib
 
+class Tweet:
+    def __init__(self, raw_tweet_dict):
+        self.id = raw_tweet_dict['id']
+        self.text = raw_tweet_dict['text']
 
 class APIConfig:
     def __init__(self, conf_json_path='./local_configs/api_keys.json', lang=None):
@@ -17,11 +21,12 @@ class APIConfig:
 class APIManager:
     def __init__(self, config: APIConfig):
         self.config = config
+        self.found_tweets = []
 
     def query(self, query: str, pages=1):
         """A simple query which gives back Tweets"""
         query = urllib.parse.quote(query)
-        tweet_list = []
+        result_list = []
         headers = {"Authorization": "Bearer {}".format(self.config.bearer)}
         options = self._stringify_options(self.config.options)
         tweet_fields = 'tweet.fields='+','.join(self.config.tweet_fields)
@@ -36,12 +41,20 @@ class APIManager:
                 url = ('https://api.twitter.com/2/tweets/search/'
                         f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
                 json_response = self._connect_to_endpoint(url, headers)
-            tweet_list.append(json_response)
+            result_list.append(json_response)
             if 'next_token' in json_response['meta'].keys():
                 next_token = json_response['meta']['next_token']
             else:
                 break
-        return tweet_list
+        tweets = self._extract_tweets(result_list)
+        self.found_tweets = [Tweet(t) for t in tweets]
+        return self.found_tweets
+
+    def _extract_tweets(self, query_result_list):
+        tweets = []
+        for page in query_result_list:
+            tweets += page['data']
+        return tweets
 
     def _stringify_options(self, options:{}) -> str:
         options_list = []
