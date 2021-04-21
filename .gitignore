@@ -54,3 +54,5 @@ aclImdb*
 local_configs
 tags
 *.pdf
+
+datasets/
