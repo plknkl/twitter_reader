@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import urllib
 
 
 class APIConfig:
@@ -9,8 +10,9 @@ class APIConfig:
         with open(self.conf_json_path) as f:
             data = json.load(f)
         self.bearer = data['bearer']
-        self.tweet_fields = ['author_id','text','created_at']
-        self.options = {'max_results': 10}
+        self.tweet_fields = ['text']
+        self.options = {'max_results': 10,
+                        'expansions': 'referenced_tweets.id'}
 
 class APIManager:
     def __init__(self, config: APIConfig):
@@ -18,7 +20,8 @@ class APIManager:
 
     def query(self, query: str, pages=1):
         """A simple query which gives back Tweets"""
-        tweets = []
+        query = urllib.parse.quote(query)
+        tweet_list = []
         headers = {"Authorization": "Bearer {}".format(self.config.bearer)}
         options = self._stringify_options(self.config.options)
         tweet_fields = 'tweet.fields='+','.join(self.config.tweet_fields)
@@ -33,20 +36,22 @@ class APIManager:
                 url = ('https://api.twitter.com/2/tweets/search/'
                         f'recent?query={query}&next_token={next_token}&{options}&{tweet_fields}')
                 json_response = self._connect_to_endpoint(url, headers)
-            tweets += json_response['data']
+            tweet_list.append(json_response)
             if 'next_token' in json_response['meta'].keys():
                 next_token = json_response['meta']['next_token']
             else:
                 break
-        return tweets
+        return tweet_list
 
     def _stringify_options(self, options:{}) -> str:
-        options_str = ''
+        options_list = []
         for k in options.keys():
-            options_str += f'{k}={options[k]}'
-        return options_str
+            options_list.append(f'{k}={options[k]}')
+        return '&'.join(options_list)
 
     def _connect_to_endpoint(self, url, headers):
+        print(url)
+        print('--')
         response = requests.request("GET", url, headers=headers)
         json_response = None
         if response.status_code == 200:
