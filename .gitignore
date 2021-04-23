@@ -56,3 +56,4 @@ tags
 *.pdf
 
 datasets/
+trained_models/

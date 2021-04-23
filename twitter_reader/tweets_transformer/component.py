@@ -1,6 +1,6 @@
 import re
 
-def de_emojify(text):
+def de_emojify(text: str):
     regrex_pattern = re.compile(pattern = "["
         u"\U0001F600-\U0001F64F"  # emoticons
         u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -9,7 +9,7 @@ def de_emojify(text):
                            "]+", flags = re.UNICODE)
     return regrex_pattern.sub(r'',text)
 
-def text_only(tweet_text):
+def text_only(tweet_text: str):
     # remove emoji
     tweet_text = de_emojify(tweet_text)
     # remove retweet tag
@@ -23,6 +23,8 @@ def text_only(tweet_text):
     tweet_text = re.sub('\s+', ' ', tweet_text)
     # remove user references 
     tweet_text = re.sub('@\w+', '', tweet_text)
+    # remove web link 
+    tweet_text = re.sub('http.*\S', '', tweet_text)
     # strip
     tweet_text = tweet_text.strip()
     
