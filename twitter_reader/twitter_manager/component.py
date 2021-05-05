@@ -28,7 +28,7 @@ class APIManager:
         """A simple query which gives back Tweets"""
         query = urllib.parse.quote(query)
         result_list = []
-        headers = {"Authorization": "Bearer {}".format(self.config.bearer)}
+        headers = self._get_headers()
         options = self._stringify_options(self.config.options)
         tweet_fields = 'tweet.fields='+','.join(self.config.tweet_fields)
         
@@ -50,6 +50,27 @@ class APIManager:
         tweets = self._extract_tweets(result_list)
         self.found_tweets = [Tweet(t) for t in tweets]
         return self.found_tweets
+
+    def get_tweet(self, id):
+        tweet_fields = "tweet.fields=lang,author_id"
+        # Tweet fields are adjustable.
+        # Options include:
+        # attachments, author_id, context_annotations,
+        # conversation_id, created_at, entities, geo, id,
+        # in_reply_to_user_id, lang, non_public_metrics, organic_metrics,
+        # possibly_sensitive, promoted_metrics, public_metrics, referenced_tweets,
+        # source, text, and withheld
+        ids = f"ids={id}"
+        # You can adjust ids to include a single Tweets.
+        # Or you can add to up to 100 comma-separated IDs
+        url = "https://api.twitter.com/2/tweets?{}&{}".format(ids, tweet_fields)
+        headers = self._get_headers()
+        json_response = self._connect_to_endpoint(url, headers)
+        
+        return Tweet(self._extract_tweets([json_response])[0])
+
+    def _get_headers(self):
+        return {"Authorization": "Bearer {}".format(self.config.bearer)}
 
     def _extract_tweets(self, query_result_list):
         tweets = []

@@ -7,7 +7,7 @@ class DBConfig:
     def __init__(self, config_dict=None):
         if not config_dict:
             self.dbname='twitter'
-            self.host='localhost'
+            self.host='db'
             self.user='postgres'
             self.password='bobolo'
         else:
@@ -19,7 +19,7 @@ class DBManager:
 
     def save_tweets(self, tweets: []) -> None:
         """A function which pushes tweet dicts to a db"""
-        json_tweets = [(json.dumps(tweet),) for tweet in tweets]
+        json_tweets = [(json.dumps(tweet.raw),) for tweet in tweets]
         try:
             with self._get_connection() as conn:
                 with conn.cursor() as cur:

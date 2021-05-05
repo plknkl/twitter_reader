@@ -1,0 +1,7 @@
+[user]
+	name = Nikolai Polikurov
+	email = nikolai.polikurov@gnucoop.com
+[core]
+	autocrlf = false
+[credential]
+	helper = "!f() { /home/jovyan/.vscode-server/bin/3c4e3df9e89829dce27b7b5c24508306b151f30d/node /tmp/vscode-remote-containers-d113b098a14b53b7ae6349af606034a6529b7b5c.js $*; }; f"

@@ -29,3 +29,10 @@ def text_only(tweet_text: str):
     tweet_text = tweet_text.strip()
     
     return tweet_text
+
+def get_original_tweet_id(tweet):
+    raw_tweet = tweet.raw
+    if 'referenced_tweets' in raw_tweet.keys():
+        original_id = raw_tweet['referenced_tweets'][0]['id']
+        return original_id
+    return tweet.id
