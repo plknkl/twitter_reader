@@ -19,6 +19,12 @@ services:
     ports:
       - 8080:8080
 
+  rabbit:
+    image: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+
   jupyter:
     build:
       context: .

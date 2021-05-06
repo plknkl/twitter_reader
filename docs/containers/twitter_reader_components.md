@@ -6,6 +6,8 @@ graph TD
     jupyter -->|imports| sentiment_analyzer[Sentiment Analyzer]
     data_storer -->|rw| database[Database]
     twitter_manager[Twitter Manager] -->|queries| twitter_api[Twitter Api]
+    celery[Celery] --> |imports| twitter_manager[Twitter Manager]
+    celery --> |imports| data_storer
 ```
 
 ## Components
@@ -24,6 +26,16 @@ query(query: str, pages=1):
 ```
 Given a twitter query, this function pulls back a list of tweets in dictionary format.
 One can ask for a certain number of pages to be retrieved. The tweets per page are defined in the APIConfig model (_max results_ parameter).
+***
+
+### Celery Module
+Is needed for periodic gathering of the tweets from the Twitter Api.
+<br>
+<br>
+```
+$ celery -A celery_module worker -B
+```
+A worker is launched in conjunction with a celery beat object, which is configured internally to use the Twitter Manager periodically and save the results to the database, using the Data Storer. Should be launched from inside the twitter reader folder so that python relative imports do work.
 ***
 
 ### Data Storer

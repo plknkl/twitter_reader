@@ -57,3 +57,4 @@ tags
 
 datasets/
 trained_models/
+celerybeat*

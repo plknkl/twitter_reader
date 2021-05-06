@@ -24,7 +24,7 @@ class APIManager:
         self.config = config
         self.found_tweets = []
 
-    def query(self, query: str, pages=1):
+    def query(self, query: str, pages=1, original=True):
         """A simple query which gives back Tweets"""
         query = urllib.parse.quote(query)
         result_list = []
@@ -49,7 +49,18 @@ class APIManager:
                 break
         tweets = self._extract_tweets(result_list)
         self.found_tweets = [Tweet(t) for t in tweets]
-        return self.found_tweets
+        
+        if not original:
+            return self.found_tweets
+        else:
+            original_tweets = []
+            for t in self.found_tweets:
+                if self._is_original(t):
+                    original_tweets.append(t)
+                else:
+                    original_t = self.get_tweet(self._get_original_tweet_id(t))
+                    original_tweets.append(original_t)
+            return original_tweets
 
     def get_tweet(self, id):
         tweet_fields = "tweet.fields=lang,author_id"
@@ -68,6 +79,12 @@ class APIManager:
         json_response = self._connect_to_endpoint(url, headers)
         
         return Tweet(self._extract_tweets([json_response])[0])
+
+    def _is_original(self, tweet):
+        if 'referenced_tweets' in tweet.raw.keys():
+            return False
+        else:
+            return True
 
     def _get_headers(self):
         return {"Authorization": "Bearer {}".format(self.config.bearer)}
@@ -96,3 +113,10 @@ class APIManager:
         if response.status_code != 200:
             raise Exception(response.status_code, response.text)
         return json_response
+
+    def _get_original_tweet_id(self,tweet):
+        raw_tweet = tweet.raw
+        if 'referenced_tweets' in raw_tweet.keys():
+            original_id = raw_tweet['referenced_tweets'][0]['id']
+            return original_id
+        return tweet.id
